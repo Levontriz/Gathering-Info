@@ -102,6 +102,9 @@ class MyWidget(QtWidgets.QWidget):
         self.previous_person = QtWidgets.QPushButton("Previous")
         self.next_person = QtWidgets.QPushButton("Next")
 
+        self.success_message_person_viewer = QtWidgets.QLabel("")
+
+
         #Stuff for new users phones
         self.phone_label = QtWidgets.QLabel("Do you have a mobile phone?")
         self.radio_button_phone_yes = QtWidgets.QRadioButton("Yes")
@@ -139,7 +142,7 @@ class MyWidget(QtWidgets.QWidget):
             #Creates the grid for viewing all peoples information
         self.user_viewer_viewer = QtWidgets.QGridLayout()
         self.user_viewer_viewer.columnCount = 2
-        self.user_viewer_viewer.rowCount = 4
+        self.user_viewer_viewer.rowCount = 5
         self.user_viewer_viewer.addWidget(self.name_label_viewer, 1, 1, QtGui.Qt.AlignmentFlag.AlignLeft)
         self.user_viewer_viewer.addWidget(self.name_value, 1, 2, QtGui.Qt.AlignmentFlag.AlignLeft)
         self.user_viewer_viewer.addWidget(self.age_label_viewer, 2, 1, QtGui.Qt.AlignmentFlag.AlignLeft)
@@ -147,6 +150,7 @@ class MyWidget(QtWidgets.QWidget):
         self.user_viewer_viewer.addWidget(self.phone_label_viewer, 3, 1, 1, 2, QtGui.Qt.AlignmentFlag.AlignCenter)
         self.user_viewer_viewer.addWidget(self.previous_person, 4, 1, QtGui.Qt.AlignmentFlag.AlignLeft)
         self.user_viewer_viewer.addWidget(self.next_person, 4, 2, QtGui.Qt.AlignmentFlag.AlignRight)
+        self.user_viewer_viewer.addWidget(self.success_message_person_viewer, 5, 1, 1, 2, QtCore.Qt.AlignmentFlag.AlignCenter)
 
         
 
@@ -172,12 +176,35 @@ class MyWidget(QtWidgets.QWidget):
         self.enter_data.clicked.connect(self.save_data)
         self.selector_button.clicked.connect(self.change_screen)
 
-        #self.previous_person.clicked.connect(self.previous_person)
-        #self.next_person.clicked.connect(self.next_person)
+        self.previous_person.clicked.connect(self.previous_person_viewer)
+        self.next_person.clicked.connect(self.next_person_viewer)
 
     
 
     @QtCore.Slot()
+    def next_person_viewer(self):
+        if self.user_index == len(readFile('people.json')) - 1:
+            self.success_message_person_viewer.setText("No more people to display!")
+            self.success_message_person_viewer.setStyleSheet("color: red;")
+            t.setTimeout(self.hide_success_message, 3000)
+            return
+        self.user_index += 1
+        self.update_person_viewer()
+    
+    def previous_person_viewer(self):
+        if self.user_index == 0:
+            self.success_message_person_viewer.setText("Already at the first person!")
+            self.success_message_person_viewer.setStyleSheet("color: red;")
+            t.setTimeout(self.hide_success_message, 3000)
+            return
+        self.user_index -= 1
+        self.update_person_viewer()
+
+    def update_person_viewer(self):
+        people_data = readFile('people.json')
+        self.name_value.setText(people_data[self.user_index]['name'])
+        self.age_value.setText(str(people_data[self.user_index]['age']))
+        self.phone_label_viewer.setText("They have a phone" if people_data[self.user_index]['phone'] else "They don\'t have a phone")
     def change_screen(self):
         if self.new_person_screen_seletected:
             people_data = readFile('people.json')
