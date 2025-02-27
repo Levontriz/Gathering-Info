@@ -260,9 +260,10 @@ class MyWidget(QtWidgets.QWidget):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
-
+    
     widget = MyWidget()
     widget.setFixedSize(420, 340)
+    widget.setWindowTitle("User Information System")
     widget.show()
 
     sys.exit(app.exec())
