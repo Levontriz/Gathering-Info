@@ -1,43 +1,27 @@
 try:
     import sys
-    import random
     import json
+    import os
     from PySide6 import QtCore, QtWidgets, QtGui
     from PySide6.QtWidgets import QGraphicsOpacityEffect
-
     import threading
-    import time
 except ImportError as e:
     print(f"Error importing modules: {e}")
     print(f"Please install the required modules using pip: 'pip install {str(e).split(' ')[3].replace("\'", "")}'")
     while True:
         pass
 
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Define the path to people.json relative to the script location
+people_file = os.path.join(script_dir, 'people.json')
 
 #Functions
 class Timer:
     def __init__(self):
         self.timers = {}
         self.timer_id = 0
-    
-    def setInterval(self, fn, time, *args):
-        def interval_callback():
-            fn(*args)
-            if timer_id in self.timers:
-                self.timers[timer_id] = threading.Timer(time/1000, interval_callback)
-                self.timers[timer_id].start()
-
-        timer_id = self.timer_id
-        self.timer_id += 1
-        self.timers[timer_id] = threading.Timer(time/1000, interval_callback)
-        self.timers[timer_id].start()
-        return timer_id
-
-    def clearInterval(self, timer_id):
-        if timer_id in self.timers:
-            self.timers[timer_id].cancel()
-            del self.timers[timer_id]
-
     def setTimeout(self, fn, delay, *args, **kwargs):
         def timer_callback():
             self.timers.pop(timer_id, None)
@@ -49,11 +33,6 @@ class Timer:
         self.timers[timer_id] = t
         t.start()
         return timer_id
-    
-    def clearTimeout(self, timer_id):
-        t = self.timers.pop(timer_id, None)
-        if t is not None:
-            t.cancel()
 t = Timer()
 
 def readFile(fileName):
@@ -65,7 +44,7 @@ def readFile(fileName):
         return []
     
 def save_person_to_file(save_data, pre_save_data):
-    with open('people.json', "w") as file:
+    with open(people_file, "w") as file:
         pre_save_data.append(save_data)
         json.dump(pre_save_data, file)
 
@@ -183,7 +162,7 @@ class MyWidget(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def next_person_viewer(self):
-        if self.user_index == len(readFile('people.json')) - 1:
+        if self.user_index == len(readFile(people_file)) - 1:
             self.success_message_person_viewer.setText("No more people to display!")
             self.success_message_person_viewer.setStyleSheet("color: red;")
             t.setTimeout(self.hide_success_message, 3000)
@@ -201,13 +180,13 @@ class MyWidget(QtWidgets.QWidget):
         self.update_person_viewer()
 
     def update_person_viewer(self):
-        people_data = readFile('people.json')
+        people_data = readFile(people_file)
         self.name_value.setText(people_data[self.user_index]['name'])
         self.age_value.setText(str(people_data[self.user_index]['age']))
         self.phone_label_viewer.setText("They have a phone" if people_data[self.user_index]['phone'] else "They don\'t have a phone")
     def change_screen(self):
         if self.new_person_screen_seletected:
-            people_data = readFile('people.json')
+            people_data = readFile(people_file)
             if len(people_data) < 1:
                 self.success_message.setText("No people data found!")
                 self.success_message.setStyleSheet("color: red;")
@@ -244,7 +223,7 @@ class MyWidget(QtWidgets.QWidget):
             "age": self.age_input.value(),
             "phone": self.radio_button_phone_yes.isChecked()  # Returns True if yes, False if no
         }
-        pre_save_data = readFile('people.json')
+        pre_save_data = readFile(people_file)
         save_person_to_file(save_data, pre_save_data)
 
         self.name_input.setText("")
